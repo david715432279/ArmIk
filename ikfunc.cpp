@@ -3,6 +3,182 @@
 #include "ikfunc.h"
 #include "stdlib.h"
 
+int ArmIkcheckFk(pos* arm_pos, ori* arm_ori, double joint_solve[6]){
+
+     IKREAL_TYPE eerot[9],eetrans[3];
+     IkSolutionList<IKREAL_TYPE> solutions;
+     IKREAL_TYPE joint_temp[6];
+     float joint_miss = 0.01;
+
+     ComputeFk(joint_solve, eetrans, eerot);
+     bool bSuccess = ComputeIk(eetrans, eerot, NULL, solutions);
+
+     if(!bSuccess){
+        for(int j=-1 ; j<2; j++)
+            for(int k=-1; k<2 ;k++)
+                for(int l=-1; l < 2; l++)
+                    for(int m=-1; m<2; m++)
+                        for(int n=-1; n<2; n++){
+                            joint_temp[0] = joint_solve[0] + j*joint_miss;
+                            joint_temp[1] = joint_solve[1] + k*joint_miss;
+                            joint_temp[2] = joint_solve[2] + l*joint_miss;
+                            joint_temp[3] = joint_solve[3] + m*joint_miss;
+                            joint_temp[4] = joint_solve[4] + n*joint_miss;
+                            joint_temp[5] = joint_solve[5];
+                            ComputeFk(joint_temp, eetrans, eerot);
+                            for(int p=0;p<3;p++)
+                                eetrans[p] = SectionNum(eetrans[p]);
+
+                            for(int p=0;p<9;p++)
+                                eerot[p] = SectionNum(eerot[p]);
+
+                            bSuccess = ComputeIk(eetrans, eerot, NULL, solutions);
+                            if(bSuccess){
+                                goto iksuccess;
+                            }
+                        }
+
+        fprintf(stderr,"Failed to get ik check fk  solution\n");
+        return  -1;
+     }else     //bSuccess is true
+     {
+iksuccess:
+         // Convert rotation matrix to quaternion (Daisuke Miyazaki)
+         double q0 = ( eerot[0] + eerot[4] + eerot[8] + 1.0f) / 4.0f;
+         double q1 = ( eerot[0] - eerot[4] - eerot[8] + 1.0f) / 4.0f;
+         double q2 = (-eerot[0] + eerot[4] - eerot[8] + 1.0f) / 4.0f;
+         double q3 = (-eerot[0] - eerot[4] + eerot[8] + 1.0f) / 4.0f;
+         if(q0 < 0.0f) q0 = 0.0f;
+         if(q1 < 0.0f) q1 = 0.0f;
+         if(q2 < 0.0f) q2 = 0.0f;
+         if(q3 < 0.0f) q3 = 0.0f;
+         q0 = sqrt(q0);
+         q1 = sqrt(q1);
+         q2 = sqrt(q2);
+         q3 = sqrt(q3);
+         if(q0 >= q1 && q0 >= q2 && q0 >= q3) {
+             q0 *= +1.0f;
+             q1 *= SIGN(eerot[7] - eerot[5]);
+             q2 *= SIGN(eerot[2] - eerot[6]);
+             q3 *= SIGN(eerot[3] - eerot[1]);
+         } else if(q1 >= q0 && q1 >= q2 && q1 >= q3) {
+             q0 *= SIGN(eerot[7] - eerot[5]);
+             q1 *= +1.0f;
+             q2 *= SIGN(eerot[3] + eerot[1]);
+             q3 *= SIGN(eerot[2] + eerot[6]);
+         } else if(q2 >= q0 && q2 >= q1 && q2 >= q3) {
+             q0 *= SIGN(eerot[2] - eerot[6]);
+             q1 *= SIGN(eerot[3] + eerot[1]);
+             q2 *= +1.0f;
+             q3 *= SIGN(eerot[7] + eerot[5]);
+         } else if(q3 >= q0 && q3 >= q1 && q3 >= q2) {
+             q0 *= SIGN(eerot[3] - eerot[1]);
+             q1 *= SIGN(eerot[6] + eerot[2]);
+             q2 *= SIGN(eerot[7] + eerot[5]);
+             q3 *= +1.0f;
+         } else {
+             printf("Error while converting to quaternion! \n");
+             return -1;
+         }
+         double r = NORM(q0, q1, q2, q3);
+         q0 /= r;
+         q1 /= r;
+         q2 /= r;
+         q3 /= r;
+
+         arm_pos->x = eetrans[0];
+         arm_pos->y = eetrans[1];
+         arm_pos->z = eetrans[2];
+
+         arm_ori->w = q0;
+         arm_ori->x = q1;
+         arm_ori->y = q2;
+         arm_ori->z = q3;
+         return 0;
+     }
+}
+
+int ArmFk(pos* arm_pos, ori* arm_ori, double joint_solve[6]){
+    IKREAL_TYPE eerot[9],eetrans[3];
+
+  /*  IKREAL_TYPE joints[ARM_DOF];
+
+    for (unsigned int i=0; i<ARM_DOF; i++){
+        joints[i] = joint_solve[i];
+    }
+*/
+     ComputeFk(joint_solve, eetrans, eerot);
+
+     for(int p=0;p<3;p++)
+         eetrans[p] = SectionNum(eetrans[p]);
+
+     for(int p=0;p<9;p++)
+         eerot[p] = SectionNum(eerot[p]);
+
+     // Convert rotation matrix to quaternion (Daisuke Miyazaki)
+     double q0 = ( eerot[0] + eerot[4] + eerot[8] + 1.0f) / 4.0f;
+     double q1 = ( eerot[0] - eerot[4] - eerot[8] + 1.0f) / 4.0f;
+     double q2 = (-eerot[0] + eerot[4] - eerot[8] + 1.0f) / 4.0f;
+     double q3 = (-eerot[0] - eerot[4] + eerot[8] + 1.0f) / 4.0f;
+     if(q0 < 0.0f) q0 = 0.0f;
+     if(q1 < 0.0f) q1 = 0.0f;
+     if(q2 < 0.0f) q2 = 0.0f;
+     if(q3 < 0.0f) q3 = 0.0f;
+     q0 = sqrt(q0);
+     q1 = sqrt(q1);
+     q2 = sqrt(q2);
+     q3 = sqrt(q3);
+     if(q0 >= q1 && q0 >= q2 && q0 >= q3) {
+         q0 *= +1.0f;
+         q1 *= SIGN(eerot[7] - eerot[5]);
+         q2 *= SIGN(eerot[2] - eerot[6]);
+         q3 *= SIGN(eerot[3] - eerot[1]);
+     } else if(q1 >= q0 && q1 >= q2 && q1 >= q3) {
+         q0 *= SIGN(eerot[7] - eerot[5]);
+         q1 *= +1.0f;
+         q2 *= SIGN(eerot[3] + eerot[1]);
+         q3 *= SIGN(eerot[2] + eerot[6]);
+     } else if(q2 >= q0 && q2 >= q1 && q2 >= q3) {
+         q0 *= SIGN(eerot[2] - eerot[6]);
+         q1 *= SIGN(eerot[3] + eerot[1]);
+         q2 *= +1.0f;
+         q3 *= SIGN(eerot[7] + eerot[5]);
+     } else if(q3 >= q0 && q3 >= q1 && q3 >= q2) {
+         q0 *= SIGN(eerot[3] - eerot[1]);
+         q1 *= SIGN(eerot[6] + eerot[2]);
+         q2 *= SIGN(eerot[7] + eerot[5]);
+         q3 *= +1.0f;
+     } else {
+         printf("Error while converting to quaternion! \n");
+         return -1;
+     }
+     double r = NORM(q0, q1, q2, q3);
+     q0 /= r;
+     q1 /= r;
+     q2 /= r;
+     q3 /= r;
+   /*  printf("  Translation:  x: %f  y: %f  z: %f  \n", eetrans[0], eetrans[1], eetrans[2] );
+     printf("  Quaternion:  %f   %f   %f   %f   \n", q0, q1, q2, q3 );
+     printf("               ");
+     // print quaternion with convention and +/- signs such that it can be copy-pasted into WolframAlpha.com
+     printf("%f ", q0);
+     if (q1 > 0) printf("+ %fi ", q1); else if (q1 < 0) printf("- %fi ", -q1); else printf("+ 0.00000i ");
+     if (q2 > 0) printf("+ %fj ", q2); else if (q2 < 0) printf("- %fj ", -q2); else printf("+ 0.00000j ");
+     if (q3 > 0) printf("+ %fk ", q3); else if (q3 < 0) printf("- %fk ", -q3); else printf("+ 0.00000k ");
+     printf("  (alternate convention) \n");
+     printf("\n\n");*/
+
+     arm_pos->x = eetrans[0];
+     arm_pos->y = eetrans[1];
+     arm_pos->z = eetrans[2];
+
+     arm_ori->w = q0;
+     arm_ori->x = q1;
+     arm_ori->y = q2;
+     arm_ori->z = q3;
+     return 0;
+}
+
 
 
 //move the end point alone the axis x,y,z related to the world
@@ -192,12 +368,12 @@ pos posMoveori(ori endOri, pos posB){
 }
 
 //do the solve about the end pose
-int arm_ik(pos arm_pos, ori arm_ori, double arm_state[ARM_DOF], double joint_solve[ARM_DOF], int flag){
+int ArmIk(pos arm_pos, ori arm_ori, double arm_state[ARM_DOF], double joint_solve[ARM_DOF], int flag){
 
     IKREAL_TYPE eerot[9],eetrans[3];
 
     unsigned int num_of_joints = 6;
-    unsigned int best_solve_id = 0;
+    int best_solve_id = -1;
     double arm_route = 0;
     double temp_route = 0;
     // for IKFast 56,61
@@ -220,19 +396,32 @@ int arm_ik(pos arm_pos, ori arm_ori, double arm_state[ARM_DOF], double joint_sol
     eerot[0] = 1.0f - 2.0f*qy*qy - 2.0f*qz*qz;  eerot[1] = 2.0f*qx*qy - 2.0f*qz*qw;         eerot[2] = 2.0f*qx*qz + 2.0f*qy*qw;
     eerot[3] = 2.0f*qx*qy + 2.0f*qz*qw;         eerot[4] = 1.0f - 2.0f*qx*qx - 2.0f*qz*qz;  eerot[5] = 2.0f*qy*qz - 2.0f*qx*qw;
     eerot[6] = 2.0f*qx*qz - 2.0f*qy*qw;         eerot[7] = 2.0f*qy*qz + 2.0f*qx*qw;         eerot[8] = 1.0f - 2.0f*qx*qx - 2.0f*qy*qy;
+
     // for IKFast 56,61
     bool bSuccess = ComputeIk(eetrans, eerot, NULL, solutions);
 
     if( !bSuccess){
-        fprintf(stderr,"Failed to get  ik solution\n");
-        return  -1;
+        for(int i=-1 ; i < 2; i++)
+            for(int j = -1 ; j < 2; j++)
+                for(int k = -1; k < 2; k++){
+                    eetrans[0] = arm_pos.x + i*0.01;
+                    eetrans[1] = arm_pos.y + j*0.01;
+                    eetrans[2] = arm_pos.z + k*0.01;
+                    bSuccess = ComputeIk(eetrans, eerot, NULL, solutions);
+                    if(bSuccess){
+                        i=2;
+                        j=2;
+                        k=2;
+                    }
+                }
+        if(!bSuccess){
+            fprintf(stderr,"Failed to get  ik solution\n");
+            return  -1;
+        }
     }
 
     // for IKFast 56,61
     unsigned int num_of_solutions = (int)solutions.GetNumSolutions();
-
-   // printf("Found %d ik solutions:\n", num_of_solutions );
-
     std::vector<IKREAL_TYPE> solvalues(num_of_joints);
     //std::vector<bool> solutions_flag(num_of_solutions);
   /*  for(std::size_t i = 0; i < num_of_solutions; ++i) {
@@ -248,17 +437,18 @@ int arm_ik(pos arm_pos, ori arm_ori, double arm_state[ARM_DOF], double joint_sol
             printf("\n");
      }
 */
-  //  printf("found the best ik!\n");
+
     for(std::size_t i = 0; i < num_of_solutions; ++i) {
 
        const IkSolutionBase<IKREAL_TYPE>& sol = solutions.GetSolution(i);
        temp_route = 0;
        // printf("sol%d (free=%d): ", (int)i, this_sol_free_params );
 
-        sol.GetSolution(&solvalues[0],NULL);
-         //count the best solver
+       sol.GetSolution(&solvalues[0],NULL);
+        //count the best solver
         for( std::size_t j = 0; j < solvalues.size(); ++j){
             if(solvalues[j] < arm_limit[j*2] || solvalues[j] > arm_limit[j*2+1]){
+                printf("the err num is %d\n",j);
                 break;
             }
             temp_route += abs(solvalues[j]-arm_state[j]);    //count the angle arm move
@@ -271,10 +461,11 @@ int arm_ik(pos arm_pos, ori arm_ori, double arm_state[ARM_DOF], double joint_sol
         }
     }
     //count the best solver
-    if(best_solve_id){
+
+    if(best_solve_id>=0){
         const IkSolutionBase<IKREAL_TYPE>& sol = solutions.GetSolution(best_solve_id);
         sol.GetSolution(&solvalues[0],NULL);
-      //  printf("sol%d: ", best_solve_id );
+        printf("sol%d: ", best_solve_id );
         for( std::size_t j = 0; j < solvalues.size(); ++j){
             joint_solve[j] = solvalues[j];
             printf("%.15f, ", solvalues[j]);
@@ -285,118 +476,61 @@ int arm_ik(pos arm_pos, ori arm_ori, double arm_state[ARM_DOF], double joint_sol
     return -1;
 }
 
-int test()
-{
-    IKREAL_TYPE eerot[9],eetrans[3];
-
-#if IK_VERSION > 54
-    // for IKFast 56,61
-    unsigned int num_of_joints = GetNumJoints();
-    unsigned int num_free_parameters = GetNumFreeParameters();
-#else
-    // for IKFast 54
-    unsigned int num_of_joints = getNumJoints();
-    unsigned int num_free_parameters = getNumFreeParameters();
-#endif
-
-#if IK_VERSION > 54
-        // for IKFast 56,61
-        IkSolutionList<IKREAL_TYPE> solutions;
-#else
-        // for IKFast 54
-        std::vector<IKSolution> vsolutions;
-#endif
-        std::vector<IKREAL_TYPE> vfree(num_free_parameters);
-
-        //for(std::size_t i = 0; i < vfree.size(); ++i)
-        //    vfree[i] = atof(argv[13+i]);
-
-        srand( (unsigned)time(0) ); // seed random number generator
-        float min = -3.14;
-        float max = 3.14;
-
-        IKREAL_TYPE joints[num_of_joints];
-
-        timespec start_time, end_time;
-        unsigned int elapsed_time = 0;
-        unsigned int sum_time = 0;
-
-#if IK_VERSION > 54
-        // for IKFast 56,61
-      //  unsigned int num_of_tests = 1000000;
-        unsigned int num_of_tests = 1000;
-#else
-        // for IKFast 54
-        unsigned int num_of_tests = 100000;
-#endif
-
-       int count = 0;
-        for (unsigned int i=0; i < num_of_tests; i++)
-        {
-            // Measure avg time for whole process
-            //clock_gettime(CLOCK_REALTIME, &start_time);
-
-            // Put random joint values into array
-            for (unsigned int i=0; i<num_of_joints; i++)
-            {
-                float rnd = (float)rand() / (float)RAND_MAX;
-                joints[i] = min + rnd * (max - min);
-            }
-           /*
-            printf("Joint angles:  ");
-            for (unsigned int i=0; i<num_of_joints; i++)
-            {
-                printf("%f  ", joints[i] );
-            }
-            printf("\n");*/
-
-#if IK_VERSION > 54
-            // for IKFast 56,61
-            ComputeFk(joints, eetrans, eerot); // void return
-#else
-            // for IKFast 54
-            fk(joints, eetrans, eerot); // void return
-#endif
-
-            // Measure avg time for IK
-            clock_gettime(CLOCK_REALTIME, &start_time);
-#if IK_VERSION > 54
-            // for IKFast 56,61
-            bool bSucces = ComputeIk(eetrans, eerot, vfree.size() > 0 ? &vfree[0] : NULL, solutions);
-            if(bSucces)
-               count++;
-#else
-            // for IKFast 54
-            ik(eetrans, eerot, vfree.size() > 0 ? &vfree[0] : NULL, vsolutions);
-#endif
-
-            /*
-#if IK_VERSION > 54
-            // for IKFast 56,61
-            unsigned int num_of_solutions = (int)solutions.GetNumSolutions();
-#else
-            // for IKFast 54
-            unsigned int num_of_solutions = (int)vsolutions.size();
-#endif
-            printf("Found %d ik solutions:\n", num_of_solutions );
-            */
-
-            clock_gettime(CLOCK_REALTIME, &end_time);
-            elapsed_time = (unsigned int)(end_time.tv_nsec - start_time.tv_nsec);
-            sum_time += elapsed_time;
-        } // endfor
-
-        unsigned int avg_time = (unsigned int)sum_time / (unsigned int)num_of_tests;
-        printf("the success is %d \n",count);
-        printf("avg time: %f ms   over %d tests \n", (float)avg_time/1000.0, num_of_tests );
-
-    return 0;
-}
-
-float SIGN(float x) {
+double SIGN(double x) {
     return (x >= 0.0f) ? +1.0f : -1.0f;
 }
 
-float NORM(float a, float b, float c, float d) {
+double NORM(double a, double b, double c, double d) {
     return sqrt(a * a + b * b + c * c + d * d);
+}
+
+/*
+ * function printfpose
+ * print the pose data
+ */
+void PrintfPose(pose arm_pose){
+    printf("the arm pose is :\n");
+    PrintfPos(arm_pose.position);
+    PrintfOri(arm_pose.orientation);
+}
+
+/*
+ * function printfpos
+ * print the pos data
+ */
+void PrintfPos(pos arm_pos){
+    printf("the pose is x =%.6f y = %.6f z = %.6f\n", arm_pos.x, arm_pos.y, arm_pos.z);
+}
+
+/*
+ * function printfori
+ * print the ori data
+ */
+void PrintfOri(ori arm_ori){
+    printf("the ori is w = %.6f,i =%.6f, j = %.6f, k =%.6f\n", arm_ori.w,arm_ori.x,arm_ori.y,arm_ori.z);
+}
+
+/*
+ * function printfroz
+ * print the roz data
+ */
+void PrintfRoz(roz arm_roz){
+    printf("the roz is x =%.6f y = %.6f z = %.6f\n", arm_roz.x, arm_roz.y, arm_roz.z);
+}
+
+
+/*
+ * function printfroz
+ * print the roz data
+ */
+void PrintfJoint(double arm_joint[ARM_DOF]){
+    printf("the joint is ");
+    for(int i=0; i < ARM_DOF; i++){
+        printf(" %.6f ",arm_joint[i]);
+    }
+      printf("\n");
+}
+
+double SectionNum(double num){
+     return int(num*100000000+0.5f)*0.00000001f;
 }

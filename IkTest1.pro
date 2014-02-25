@@ -21,6 +21,6 @@ HEADERS  += widget.h ikfast.h \
     ikfunc.h \
     ikarmdesc.h
 
-LIBS +=  -L/home/user/Workspace/IkTest -lik
+LIBS +=  -L/home/user/Workplace/IkTest -lik -llapack
 
 FORMS    += widget.ui
