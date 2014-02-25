@@ -24,6 +24,9 @@ using namespace ikfast;
 double SIGN(double x);
 double NORM(double a, double b, double c, double d);
 
+//得到两点间的坐标插值
+pos PosDis(pos begin,pos end);
+
 //截断小数，保留后8位
 double SectionNum(double num);
 
@@ -83,6 +86,19 @@ pos posMoveori(ori endOri, pos posB);
  */
 ori EndRotXYZ(ori end_ori, roz  rel_ori);
 ori rozMove(ori endOri, roz rel_ori);
+
+/*
+ *function ConunLine
+ *计算机械臂末端直线规划
+ *parm  s_point @      起始世界坐标
+ *      e_point @      终点世界坐标
+ *      arm_ori @      末端姿态
+ *      precis  @      步长（默认 0.01）
+ *    arm_state @    机械臂末端当前的姿态
+ *
+ *      return bool    是否有满足条件的解
+ */
+bool CountLine(pos s_point, pos e_point, ori arm_ori, int precis, double arm_state[6]);
 
 /*
  * function printfpose

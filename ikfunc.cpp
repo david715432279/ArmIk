@@ -3,6 +3,59 @@
 #include "ikfunc.h"
 #include "stdlib.h"
 
+bool CountLine(pos s_point, pos e_point, ori arm_ori, int precis,double arm_state[6]){
+    double step = 0.01;
+    int step_count = 0;
+    pos dst,temp_pose;
+    double joint_sol_temp[ARM_DOF];
+    double sol_old[ARM_DOF];
+
+    bool bSuccess;
+
+    for(int i=0;i<ARM_DOF;i++){
+        joint_sol_temp[i] = arm_state[i];
+        sol_old[i] = arm_state[i];
+    }
+
+
+   // step 1 count the dis between the point
+    dst = PosDis(s_point,e_point);
+        PrintfPos(dst);
+    // step 2 count the length
+    double length = NORM(dst.x, dst.y, dst.z, 0);
+        printf("the length is %f\n",length);
+    step_count = (int)(length/step);
+    printf("the count is %d\n",step_count);
+    for(int i=0;i<ARM_DOF;i++){
+        sol_old[i] = joint_sol_temp[i];
+    }
+
+    for(int i=0;i<step_count-1;i++){
+        temp_pose.x = s_point.x + i*dst.x/step_count;
+        temp_pose.y = s_point.y + i*dst.y/step_count;
+        temp_pose.z = s_point.z + i*dst.z/step_count;
+
+        bSuccess = ArmIk(temp_pose, arm_ori, sol_old, joint_sol_temp, 0);
+        if(bSuccess  == -1){
+            printf("ik error at %d",i);
+            PrintfPos(temp_pose);
+            return false;
+        }
+        for(int j=0;j<ARM_DOF;j++){
+            sol_old[j] = joint_sol_temp[j];
+        }
+    }
+
+    bSuccess = ArmIk(e_point, arm_ori, sol_old, joint_sol_temp, 0);
+    if(bSuccess  == -1){
+        printf("the end point is error!\n");
+        PrintfPos(temp_pose);
+        return false;
+    }
+     return true;
+}
+
+
 int ArmIkcheckFk(pos* arm_pos, ori* arm_ori, double joint_solve[6]){
 
      IKREAL_TYPE eerot[9],eetrans[3];
@@ -185,7 +238,6 @@ int ArmFk(pos* arm_pos, ori* arm_ori, double joint_solve[6]){
 //mov_dst表示相对末端点x,y,z坐标轴移动的距离
 //end_ori表示末端的姿态四元素
 //return pos表示沿着世界坐标系x,y,z轴移动的距离
-
 pos EndMoveXYZ(ori end_ori, pos mov_dst){
 
     pos world_frame;
@@ -278,8 +330,6 @@ ori EndRotXYZ(ori end_ori, roz rel_ori){
     result.z = RozCA[3];
 
     return result;
-
-
 }
 
 ori rozMove(ori endOri, roz rel_ori){
@@ -424,7 +474,7 @@ int ArmIk(pos arm_pos, ori arm_ori, double arm_state[ARM_DOF], double joint_solv
     unsigned int num_of_solutions = (int)solutions.GetNumSolutions();
     std::vector<IKREAL_TYPE> solvalues(num_of_joints);
     //std::vector<bool> solutions_flag(num_of_solutions);
-  /*  for(std::size_t i = 0; i < num_of_solutions; ++i) {
+ /*  for(std::size_t i = 0; i < num_of_solutions; ++i) {
 
         const IkSolutionBase<IKREAL_TYPE>& sol = solutions.GetSolution(i);
         int this_sol_free_params = (int)sol.GetFree().size();
@@ -436,8 +486,8 @@ int ArmIk(pos arm_pos, ori arm_ori, double arm_state[ARM_DOF], double joint_solv
             printf("%.15f, ", solvalues[j]);
             printf("\n");
      }
-*/
 
+*/
     for(std::size_t i = 0; i < num_of_solutions; ++i) {
 
        const IkSolutionBase<IKREAL_TYPE>& sol = solutions.GetSolution(i);
@@ -448,12 +498,13 @@ int ArmIk(pos arm_pos, ori arm_ori, double arm_state[ARM_DOF], double joint_solv
         //count the best solver
         for( std::size_t j = 0; j < solvalues.size(); ++j){
             if(solvalues[j] < arm_limit[j*2] || solvalues[j] > arm_limit[j*2+1]){
-                printf("the err num is %d\n",j);
+                //printf("the err num is %d\n",j);
                 break;
             }
-            temp_route += abs(solvalues[j]-arm_state[j]);    //count the angle arm move
+            temp_route += fabs(solvalues[j]-arm_state[j]);    //count the angle arm move
             if(j == solvalues.size()-1){
-                if(arm_route == 0 || temp_route < arm_route){
+                if(arm_route == 0.0f || (temp_route - arm_route) < 0.0f){
+                     // printf("the %d best sol id the temp_route is %f arm_route is %f",i,temp_route,arm_route);
                     best_solve_id = (int)i;
                     arm_route = temp_route;
                 }
@@ -473,6 +524,7 @@ int ArmIk(pos arm_pos, ori arm_ori, double arm_state[ARM_DOF], double joint_solv
           printf("\n");
           return 0;
     }
+    fprintf(stderr,"Failed to get  ik solution\n");
     return -1;
 }
 
@@ -492,6 +544,7 @@ void PrintfPose(pose arm_pose){
     printf("the arm pose is :\n");
     PrintfPos(arm_pose.position);
     PrintfOri(arm_pose.orientation);
+    printf("the ./compute ik %.6f %.6f %.6f %.6f %.6f %.6f %.6f\n",arm_pose.position.x, arm_pose.position.y, arm_pose.position.z,arm_pose.orientation.w,arm_pose.orientation.x,arm_pose.orientation.y,arm_pose.orientation.z);
 }
 
 /*
@@ -533,4 +586,12 @@ void PrintfJoint(double arm_joint[ARM_DOF]){
 
 double SectionNum(double num){
      return int(num*100000000+0.5f)*0.00000001f;
+}
+
+pos PosDis(pos begin,pos end){
+    pos temp;
+    temp.x = end.x - begin.x;
+    temp.y = end.y - begin.y;
+    temp.z = end.z - begin.z;
+    return temp;
 }
