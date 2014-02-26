@@ -6,6 +6,7 @@ RobotInitForm::RobotInitForm(QWidget *parent) :
     ui(new Ui::RobotInitForm)
 {
     ui->setupUi(this);
+    this->hide();
 }
 
 RobotInitForm::~RobotInitForm()

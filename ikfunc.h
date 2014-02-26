@@ -31,6 +31,16 @@ pos PosDis(pos begin,pos end);
 double SectionNum(double num);
 
 /*
+ * fuction test the angle between point to point
+ * 测试解算出的点与点之间机械臂各个关节角度是否存在翻转
+ * parm a @      第一个点
+ *      b @      第二个点
+ *      angle @    最大角度（弧度表示）
+ *      return     是否超过最大角度
+ */
+bool PointAngTest(double a[ARM_DOF], double b[ARM_DOF], double angle);
+
+/*
  * fuction solve the joint
  * parm arm_pos @      arm postion for destination  x,y,z
  *      arm_ori @      arm orientation for destination x,y,z,w
@@ -93,12 +103,13 @@ ori rozMove(ori endOri, roz rel_ori);
  *parm  s_point @      起始世界坐标
  *      e_point @      终点世界坐标
  *      arm_ori @      末端姿态
- *      precis  @      步长（默认 0.01）
+ *      precis  @      步长（默认 0.01*precis）
+ *      angle   @      点之间角度检测误差（弧度表示）
  *    arm_state @    机械臂末端当前的姿态
  *
  *      return bool    是否有满足条件的解
  */
-bool CountLine(pos s_point, pos e_point, ori arm_ori, int precis, double arm_state[6]);
+bool CountLine(pos s_point, pos e_point, ori arm_ori, double precis, double angle, double arm_state[6]);
 
 /*
  * function printfpose

@@ -1,10 +1,20 @@
-//int main(int argc, char** argv)
-
 #include "ikfunc.h"
 #include "stdlib.h"
 
-bool CountLine(pos s_point, pos e_point, ori arm_ori, int precis,double arm_state[6]){
-    double step = 0.01;
+bool PointAngTest(double a[ARM_DOF], double b[ARM_DOF], double angle){
+    double temp;
+
+    for(int i=0; i<ARM_DOF; i++){
+        temp = fabs(a[i]-b[i]);
+        if(temp > angle)
+            return false;
+     //   printf("the %d angle bet is %.6f\n",i,temp);z
+    }
+    return true;
+}
+
+bool CountLine(pos s_point, pos e_point, ori arm_ori, double precis, double angle, double arm_state[6]){
+    double step = 0.01*precis;
     int step_count = 0;
     pos dst,temp_pose;
     double joint_sol_temp[ARM_DOF];
@@ -26,9 +36,6 @@ bool CountLine(pos s_point, pos e_point, ori arm_ori, int precis,double arm_stat
         printf("the length is %f\n",length);
     step_count = (int)(length/step);
     printf("the count is %d\n",step_count);
-    for(int i=0;i<ARM_DOF;i++){
-        sol_old[i] = joint_sol_temp[i];
-    }
 
     for(int i=0;i<step_count-1;i++){
         temp_pose.x = s_point.x + i*dst.x/step_count;
@@ -38,6 +45,11 @@ bool CountLine(pos s_point, pos e_point, ori arm_ori, int precis,double arm_stat
         bSuccess = ArmIk(temp_pose, arm_ori, sol_old, joint_sol_temp, 0);
         if(bSuccess  == -1){
             printf("ik error at %d",i);
+            PrintfPos(temp_pose);
+            return false;
+        }
+        if(i>0 && !PointAngTest(sol_old, joint_sol_temp, angle)){
+            printf("angle test error at %d",i);
             PrintfPos(temp_pose);
             return false;
         }

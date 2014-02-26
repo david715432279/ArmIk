@@ -6,35 +6,74 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>773</width>
-    <height>449</height>
+    <width>1366</width>
+    <height>768</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="font">
+   <font>
+    <family>WenQuanYi Micro Hei Mono</family>
+   </font>
   </property>
   <property name="windowTitle">
    <string>Widget</string>
   </property>
-  <widget class="QTabWidget" name="tabWidget">
+  <property name="locale">
+   <locale language="Chinese" country="China"/>
+  </property>
+  <widget class="QLabel" name="label">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>20</y>
-     <width>751</width>
-     <height>421</height>
+     <x>90</x>
+     <y>140</y>
+     <width>231</width>
+     <height>71</height>
     </rect>
    </property>
-   <property name="currentIndex">
+   <property name="font">
+    <font>
+     <pointsize>20</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>轻型搬运机器人</string>
+   </property>
+   <property name="textFormat">
+    <enum>Qt::AutoText</enum>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+   <property name="margin">
     <number>0</number>
    </property>
-   <widget class="QWidget" name="tab">
-    <attribute name="title">
-     <string>tab1</string>
-    </attribute>
-   </widget>
-   <widget class="QWidget" name="tab_2">
-    <attribute name="title">
-     <string>Tab 2</string>
-    </attribute>
-   </widget>
+   <property name="indent">
+    <number>-1</number>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="SysTestButton">
+   <property name="geometry">
+    <rect>
+     <x>670</x>
+     <y>170</y>
+     <width>161</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>20</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>系统测试</string>
+   </property>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>

@@ -2,6 +2,7 @@
 #define WIDGET_H
 
 #include <QWidget>
+#include <robotinitform.h>
 
 namespace Ui {
 class Widget;
@@ -17,6 +18,9 @@ public:
 
 private:
     Ui::Widget *ui;
+    RobotInitForm *robot_init_form;
+
+    void ButtonInit();  //初始化按钮状态，以后可能用checknetstate代替
 };
 
 #endif // WIDGET_H
