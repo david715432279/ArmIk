@@ -12,6 +12,7 @@ Widget::Widget(QWidget *parent) :
 
     ButtonInit();//初始化按钮
 
+
 }
 
 Widget::~Widget()
@@ -21,6 +22,8 @@ Widget::~Widget()
 
 void Widget::ButtonInit()
 {
-    connect(ui->SysTestButton,SIGNAL(clicked()),robot_init_form,SLOT(show()));
-
+    connect(ui->SysTestButton,SIGNAL(clicked()),robot_init_form,SLOT(CheckRobotState()));
 }
+
+
+

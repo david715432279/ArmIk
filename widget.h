@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <robotinitform.h>
+#include <QPushButton>
 
 namespace Ui {
 class Widget;
@@ -18,9 +19,13 @@ public:
 
 private:
     Ui::Widget *ui;
-    RobotInitForm *robot_init_form;
+    RobotInitForm *robot_init_form;    
+    void ShowRobotInitForm();
 
     void ButtonInit();  //初始化按钮状态，以后可能用checknetstate代替
+public slots:
+    void test();
+
 };
 
 #endif // WIDGET_H

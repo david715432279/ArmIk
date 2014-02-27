@@ -27,3 +27,6 @@ LIBS +=  -L/home/user/Workplace/IkTest -lik -llapack
 
 FORMS    += widget.ui \
     robotinitform.ui
+
+RESOURCES += \
+    res.qrc
