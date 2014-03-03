@@ -16,12 +16,14 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         widget.cpp ikfunc.cpp \
-    robotinitform.cpp
+    robotinitform.cpp \
+    armstate.cpp
 
 HEADERS  += widget.h ikfast.h \
     ikfunc.h \
     ikarmdesc.h \
-    robotinitform.h
+    robotinitform.h \
+    armstate.h
 
 LIBS +=  -L/home/user/Workplace/IkTest -lik -llapack
 

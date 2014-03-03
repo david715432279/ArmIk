@@ -5,6 +5,8 @@
 //limit the joint for the arm
 //const float arm_limit[12] = {-2.96,2.96,-1.91,1.91,-1.91,1.91,-2.96,2.96,-1.91,1.91,-2.96,2.96};
 const float arm_limit[12] = {-3.0,3.0,-2.96,2.96,-2.96,2.96,-2.96,2.96,-2.96,2.96,-2.96,2.96};
+const double arm_init_joint_state[ARM_DOF] = {0,0,0,0,0,0};
+//pose arm_end_pose;  //表示当前的末端机械臂坐标
 
 //record the joint for now
 
@@ -34,4 +36,5 @@ typedef struct {
     pos position;
     ori orientation;
 }pose;
+
 #endif // IKARMDESC_H

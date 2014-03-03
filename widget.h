@@ -4,6 +4,8 @@
 #include <QWidget>
 #include <robotinitform.h>
 #include <QPushButton>
+//#include <ikfunc.h>
+//#include <ikarmdesc.h>
 
 namespace Ui {
 class Widget;
@@ -24,7 +26,7 @@ private:
 
     void ButtonInit();  //初始化按钮状态，以后可能用checknetstate代替
 public slots:
-    void test();
+ //   void test();
 
 };
 

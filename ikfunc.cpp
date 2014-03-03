@@ -68,12 +68,12 @@ bool CountLine(pos s_point, pos e_point, ori arm_ori, double precis, double angl
 }
 
 
-int ArmIkcheckFk(pos* arm_pos, ori* arm_ori, double joint_solve[6]){
+int ArmIkCheckFk(pos* arm_pos, ori* arm_ori,const double joint_solve[6]){
 
      IKREAL_TYPE eerot[9],eetrans[3];
      IkSolutionList<IKREAL_TYPE> solutions;
      IKREAL_TYPE joint_temp[6];
-     float joint_miss = 0.01;
+     float joint_miss = 0.007;
 
      ComputeFk(joint_solve, eetrans, eerot);
      bool bSuccess = ComputeIk(eetrans, eerot, NULL, solutions);
@@ -429,8 +429,12 @@ pos posMoveori(ori endOri, pos posB){
     return PosA;
 }
 
+/*int ArmIkF(pos arm_pos, ori arm_ori, const float arm_state[ARM_DOF], float joint_solve[ARM_DOF], int flag = NULL){
+    return 0;
+}
+*/
 //do the solve about the end pose
-int ArmIk(pos arm_pos, ori arm_ori, double arm_state[ARM_DOF], double joint_solve[ARM_DOF], int flag){
+int ArmIk(pos arm_pos, ori arm_ori,const double arm_state[ARM_DOF], double joint_solve[ARM_DOF], int flag){
 
     IKREAL_TYPE eerot[9],eetrans[3];
 

@@ -19,6 +19,8 @@
 using namespace Eigen;
 
 #define IKREAL_TYPE IkReal // for IKFast 56,61
+#define STEP_PRECISION 0.01
+
 using namespace ikfast;
 
 double SIGN(double x);
@@ -56,8 +58,12 @@ bool PointAngTest(double a[ARM_DOF], double b[ARM_DOF], double angle);
  *      joint_solve @  解算结果
  *      flag @         for other function
  *      return         解算结果是否成功
+ *      0              成功
+ *      -1             失败
  */
-int ArmIk(pos arm_pos, ori arm_ori, double arm_state[6], double joint_solve[6], int flag = NULL);
+int ArmIk(pos arm_pos, ori arm_ori, const double arm_state[ARM_DOF], double joint_solve[ARM_DOF], int flag = NULL);
+
+//int ArmIkF(pos arm_pos, ori arm_ori, const float arm_state[ARM_DOF], float joint_solve[ARM_DOF], int flag = NULL);
 
 /*
  * fuction solve the joint
@@ -65,17 +71,21 @@ int ArmIk(pos arm_pos, ori arm_ori, double arm_state[6], double joint_solve[6], 
  *      arm_ori @      机械末端姿态（四元素表示法）
  *      joint_solve @  机械臂角度
  *      return         解算结果是否成功
+ */
+int ArmIkCheckFk(pos* arm_pos, ori* arm_ori,const double joint_solve[6]);
+
+/*
+ * fuction solve the joint
+ * parm arm_pos @      机械臂末端目的坐标
+ *      arm_ori @      机械末端姿态（四元素表示法）
+ *      joint_solve @  机械臂角度
+ *      return         解算结果是否成功
+ *      0              成功
+ *      -1             失败
  */
 int ArmFk(pos* arm_pos, ori* arm_ori, double joint_solve[6]);
 
-/*
- * fuction solve the joint
- * parm arm_pos @      机械臂末端目的坐标
- *      arm_ori @      机械末端姿态（四元素表示法）
- *      joint_solve @  机械臂角度
- *      return         解算结果是否成功
- */
-int ArmIkCheckFk(pos* arm_pos, ori* arm_ori, double joint_solve[6]);
+
 
 /*
  *function EndMoveXYZ

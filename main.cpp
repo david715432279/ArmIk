@@ -1,7 +1,8 @@
 #include "widget.h"
 #include <QApplication>
-//#include "ikfunc.h"
+//#include <ikfunc.h>
 //#include "stdio.h"
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
@@ -29,7 +30,7 @@ double arm_joint_state[6] = {0,0,0,0,0,0};
 
     end_pos.x = -0.430622845888;
     end_pos.y = -0.00417962437496;
-    end_pos.z = 0.790055513382;*/
+    end_pos.z = 0.790055513382;
     //test_pos.position = end_pos;
   //  pos resulta,resultb;
   //  resulta = EndMoveXYZ(test_pos.orientation, test_pos.position);
@@ -47,12 +48,13 @@ double arm_joint_state[6] = {0,0,0,0,0,0};
    // CountLine(test_pos.position, end_pos, test_pos.orientation, 1.0, 1.0, arm_joint_state);
 
   //  arm_ik(test_pos.position, test_pos.orientation, arm_joint_state, arm_slov_joint, NULL);
-   // ArmFk(&test_pos.position,&test_pos.orientation,arm_joint_state);
+    ArmIkCheckFk(&test_pos.position,&test_pos.orientation,arm_joint_state);
+  // ArmFk(&test_pos.position,&test_pos.orientation,arm_joint_state);
    // PrintfPose(test_pos);
    // ArmIk(test_pos.position, test_pos.orientation, arm_joint_state, arm_slov_joint, NULL);
   //  PrintfJoint(arm_slov_joint);
 
-   // printfpose(test_pos);
+   // printfpose(test_pos);*/
 
     return a.exec();
 }
