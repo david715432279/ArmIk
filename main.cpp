@@ -2,9 +2,13 @@
 #include <QApplication>
 //#include <ikfunc.h>
 //#include "stdio.h"
+#include <robot/arm_joint.h>
 
 int main(int argc, char *argv[])
 {
+
+
+
     QApplication a(argc, argv);
     Widget w;
     w.show();

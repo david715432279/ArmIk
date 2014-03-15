@@ -5,6 +5,7 @@
 #define POS_PRECISION 4
 #define ORI_PRECISION 4
 #define JOINT_PRECISION 4
+#define SET_ALL_JOINT 0x10
 
 class ArmState
 {
@@ -19,6 +20,8 @@ public:
     bool ReadArmState(double arm_state[ARM_DOF]);
     bool SetArmJoState(double arm_state[ARM_DOF]);
     bool SetArmJoState(pose arm_temp_pose, double arm_state[ARM_DOF]);
+    bool SetArmJoState(pose arm_temp_pose, double arm_state[ARM_DOF], int joint_index);
+    bool SetArmInitState();
 
 private:
     double arm_solve_state[ARM_DOF];

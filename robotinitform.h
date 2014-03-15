@@ -23,6 +23,7 @@ public:
 public slots:
     void CheckRobotState();
     void PressButton();
+    void ResetRobot();
    // void PressButtonTimeout();
 
 private:

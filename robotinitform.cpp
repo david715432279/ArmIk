@@ -20,6 +20,15 @@ RobotInitForm::RobotInitForm(QWidget *parent) :
     connect(ui->Ax1UButton,SIGNAL(pressed()),this, SLOT(PressButton()));
     connect(ui->Ax2DButton,SIGNAL(pressed()), this,SLOT(PressButton()));
     connect(ui->Ax2UButton,SIGNAL(pressed()),this, SLOT(PressButton()));
+    connect(ui->Ax3DButton,SIGNAL(pressed()), this,SLOT(PressButton()));
+    connect(ui->Ax3UButton,SIGNAL(pressed()),this, SLOT(PressButton()));
+    connect(ui->Ax4DButton,SIGNAL(pressed()), this,SLOT(PressButton()));
+    connect(ui->Ax4UButton,SIGNAL(pressed()),this, SLOT(PressButton()));
+    connect(ui->Ax5DButton,SIGNAL(pressed()), this,SLOT(PressButton()));
+    connect(ui->Ax5UButton,SIGNAL(pressed()),this, SLOT(PressButton()));
+    connect(ui->Ax6DButton,SIGNAL(pressed()), this,SLOT(PressButton()));
+    connect(ui->Ax6UButton,SIGNAL(pressed()),this, SLOT(PressButton()));
+    connect(ui->TurnZeroButton,SIGNAL(pressed()),this,SLOT(ResetRobot()));
     this->hide();
 
 }
@@ -68,26 +77,6 @@ void RobotInitForm::UpdateArmState(){
     //step 2 读取机器人状态，设置相应的按钮参数
 }
 
-/*     PB                        ID
- * Ax1DButton                     1
- * Ax1UButton                     2
- * Ax2DButton                     3
- * Ax2UButton                     4
- * Ax3DButton                     5
- * Ax3UButton                     6
- * Ax4DButton                     7
- * Ax4UButton                     8
- * Ax5DButton                     9
- * Ax5UButton                    10
- * Ax6DButton                    11
- * Ax6UButton                    12
- * FPosButton                    13
- * BPosButton                    14
- * LPosButton                    15
- * RPosButton                    16
- * UPosButton                    17
- * DPosButton                    18
- */
 void RobotInitForm::PressButton(){
     if(ui->Ax1DButton->isDown()){
         arm_temp_joint[0] -= ANGLE_PRECISION;
@@ -98,7 +87,7 @@ void RobotInitForm::PressButton(){
         }
         //进行运动学正解
         if(ArmFk(&arm_temp_pose.position,&arm_temp_pose.orientation,arm_temp_joint)==0){
-            if(arm_ob->SetArmJoState(arm_temp_pose,arm_temp_joint)){
+            if(arm_ob->SetArmJoState(arm_temp_pose,arm_temp_joint,0x01)){
                 //TODO: 错误处理
             }
         }
@@ -114,7 +103,7 @@ void RobotInitForm::PressButton(){
         }
         //进行运动学正解
         if(ArmFk(&arm_temp_pose.position,&arm_temp_pose.orientation,arm_temp_joint)==0){
-            if(arm_ob->SetArmJoState(arm_temp_pose,arm_temp_joint)){
+            if(arm_ob->SetArmJoState(arm_temp_pose,arm_temp_joint,0x01)){
                 //TODO: 错误处理
             }
         }
@@ -130,7 +119,7 @@ void RobotInitForm::PressButton(){
         }
         //进行运动学正解
         if(ArmFk(&arm_temp_pose.position,&arm_temp_pose.orientation,arm_temp_joint)==0){
-            if(arm_ob->SetArmJoState(arm_temp_pose,arm_temp_joint)){
+            if(arm_ob->SetArmJoState(arm_temp_pose,arm_temp_joint,0x02)){
                 //TODO: 错误处理
             }
         }
@@ -146,21 +135,158 @@ void RobotInitForm::PressButton(){
         }
         //进行运动学正解
         if(ArmFk(&arm_temp_pose.position,&arm_temp_pose.orientation,arm_temp_joint)==0){
-            if(arm_ob->SetArmJoState(arm_temp_pose,arm_temp_joint)){
+            if(arm_ob->SetArmJoState(arm_temp_pose,arm_temp_joint,0x02)){
                 //TODO: 错误处理
             }
         }
         if(!PButtonTimer->isActive()){
             PButtonTimer->start();
         }
-    }
-    else{
+    }else if(ui->Ax3DButton->isDown()){
+        arm_temp_joint[2] -= ANGLE_PRECISION;
+        //检查是否超过控制范围
+        if(arm_temp_joint[2] < arm_limit[4] || arm_temp_joint[2] > arm_limit[5]){
+            arm_temp_joint[2] += ANGLE_PRECISION;
+            return;
+        }
+        //进行运动学正解
+        if(ArmFk(&arm_temp_pose.position,&arm_temp_pose.orientation,arm_temp_joint)==0){
+            if(arm_ob->SetArmJoState(arm_temp_pose,arm_temp_joint,0x03)){
+                //TODO: 错误处理
+            }
+        }
+        if(!PButtonTimer->isActive()){
+            PButtonTimer->start();
+        }
+    }else if(ui->Ax3UButton->isDown()){
+        arm_temp_joint[2] += ANGLE_PRECISION;
+        //检查是否超过控制范围
+        if(arm_temp_joint[2] < arm_limit[4] || arm_temp_joint[2] > arm_limit[5]){
+            arm_temp_joint[2] -= ANGLE_PRECISION;
+            return;
+        }
+        //进行运动学正解
+        if(ArmFk(&arm_temp_pose.position,&arm_temp_pose.orientation,arm_temp_joint)==0){
+            if(arm_ob->SetArmJoState(arm_temp_pose,arm_temp_joint,0x03)){
+                //TODO: 错误处理
+            }
+        }
+        if(!PButtonTimer->isActive()){
+            PButtonTimer->start();
+        }
+    }else if(ui->Ax4DButton->isDown()){
+        arm_temp_joint[3] -= ANGLE_PRECISION;
+        //检查是否超过控制范围
+        if(arm_temp_joint[3] < arm_limit[6] || arm_temp_joint[3] > arm_limit[7]){
+            arm_temp_joint[3] += ANGLE_PRECISION;
+            return;
+        }
+        //进行运动学正解
+        if(ArmFk(&arm_temp_pose.position,&arm_temp_pose.orientation,arm_temp_joint)==0){
+            if(arm_ob->SetArmJoState(arm_temp_pose,arm_temp_joint,0x04)){
+                //TODO: 错误处理
+            }
+        }
+        if(!PButtonTimer->isActive()){
+            PButtonTimer->start();
+        }
+    }else if(ui->Ax4UButton->isDown()){
+        arm_temp_joint[3] += ANGLE_PRECISION;
+        //检查是否超过控制范围
+        if(arm_temp_joint[3] < arm_limit[6] || arm_temp_joint[3] > arm_limit[7]){
+            arm_temp_joint[3] -= ANGLE_PRECISION;
+            return;
+        }
+        //进行运动学正解
+        if(ArmFk(&arm_temp_pose.position,&arm_temp_pose.orientation,arm_temp_joint)==0){
+            if(arm_ob->SetArmJoState(arm_temp_pose,arm_temp_joint,0x04)){
+                //TODO: 错误处理
+            }
+        }
+        if(!PButtonTimer->isActive()){
+            PButtonTimer->start();
+        }
+    }else if(ui->Ax5DButton->isDown()){
+        arm_temp_joint[4] -= ANGLE_PRECISION;
+        //检查是否超过控制范围
+        if(arm_temp_joint[4] < arm_limit[8] || arm_temp_joint[4] > arm_limit[9]){
+            arm_temp_joint[4] += ANGLE_PRECISION;
+            return;
+        }
+        //进行运动学正解
+        if(ArmFk(&arm_temp_pose.position,&arm_temp_pose.orientation,arm_temp_joint)==0){
+            if(arm_ob->SetArmJoState(arm_temp_pose,arm_temp_joint,0x05)){
+                //TODO: 错误处理
+            }
+        }
+        if(!PButtonTimer->isActive()){
+            PButtonTimer->start();
+        }
+    }else if(ui->Ax5UButton->isDown()){
+        arm_temp_joint[4] += ANGLE_PRECISION;
+        //检查是否超过控制范围
+        if(arm_temp_joint[4] < arm_limit[8] || arm_temp_joint[4] > arm_limit[9]){
+            arm_temp_joint[4] -= ANGLE_PRECISION;
+            return;
+        }
+        //进行运动学正解
+        if(ArmFk(&arm_temp_pose.position,&arm_temp_pose.orientation,arm_temp_joint)==0){
+            if(arm_ob->SetArmJoState(arm_temp_pose,arm_temp_joint,0x05)){
+                //TODO: 错误处理
+            }
+        }
+        if(!PButtonTimer->isActive()){
+            PButtonTimer->start();
+        }
+    }else if(ui->Ax6DButton->isDown()){
+        arm_temp_joint[5] -= ANGLE_PRECISION;
+        //检查是否超过控制范围
+        if(arm_temp_joint[5] < arm_limit[10] || arm_temp_joint[5] > arm_limit[11]){
+            arm_temp_joint[5] += ANGLE_PRECISION;
+            return;
+        }
+        //进行运动学正解
+        if(ArmFk(&arm_temp_pose.position,&arm_temp_pose.orientation,arm_temp_joint)==0){
+            if(arm_ob->SetArmJoState(arm_temp_pose,arm_temp_joint,0x06)){
+                //TODO: 错误处理
+            }
+        }
+        if(!PButtonTimer->isActive()){
+            PButtonTimer->start();
+        }
+    }else if(ui->Ax6UButton->isDown()){
+        arm_temp_joint[5] += ANGLE_PRECISION;
+        //检查是否超过控制范围
+        if(arm_temp_joint[5] < arm_limit[10] || arm_temp_joint[5] > arm_limit[11]){
+            arm_temp_joint[5] -= ANGLE_PRECISION;
+            return;
+        }
+        //进行运动学正解
+        if(ArmFk(&arm_temp_pose.position,&arm_temp_pose.orientation,arm_temp_joint)==0){
+            if(arm_ob->SetArmJoState(arm_temp_pose,arm_temp_joint,0x06)){
+                //TODO: 错误处理
+            }
+        }
+        if(!PButtonTimer->isActive()){
+            PButtonTimer->start();
+        }
+    }else{
              PButtonTimer->stop();
     }
 
 
     this->UpdateArmState();
 
+}
+
+void RobotInitForm::ResetRobot(){
+    //step 1 设置机器人到初始状态
+    arm_ob->ArmState::SetArmInitState();
+
+    //step 2 清空对象全局变量
+     this->UpdateArmState();
+
+    //step 3 停止所有定时器
 }
 /*
 void RobotInitForm::PressButtonTimeout(){

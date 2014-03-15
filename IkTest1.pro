@@ -17,15 +17,20 @@ TEMPLATE = app
 SOURCES += main.cpp\
         widget.cpp ikfunc.cpp \
     robotinitform.cpp \
-    armstate.cpp
+    armstate.cpp \
+    common.c \
+    bitratetest.cpp \
+    arm_joint.c \
 
 HEADERS  += widget.h ikfast.h \
     ikfunc.h \
     ikarmdesc.h \
     robotinitform.h \
-    armstate.h
+    armstate.h \
+    common.h \
 
 LIBS +=  -L/home/user/Workplace/IkTest -lik -llapack
+LIBS +=  -L/usr/lib -lpcan -DNO_RT
 
 FORMS    += widget.ui \
     robotinitform.ui
