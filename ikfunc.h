@@ -19,7 +19,7 @@
 using namespace Eigen;
 
 #define IKREAL_TYPE IkReal // for IKFast 56,61
-#define STEP_PRECISION 0.01
+#define STEP_PRECISION 0.001
 
 using namespace ikfast;
 
@@ -98,6 +98,24 @@ pos EndMoveXYZ(ori end_ori, pos mov_dst);
 pos posMoveori(ori endOri, pos posB);
 
 /*
+ *function RelatMove
+ * parm  end_pos @ 表示机械臂当前末端的位置和姿态（四元素）
+ *       mov_dst @ 表示机械臂沿着末端坐标系x，y，z移动的距离
+ *
+ * return pose    @ 表示机械臂末端沿着相对坐标系移动mov——dst的最后坐标
+ */
+pose RelatMove(pose end_pos, pos mov_dst);
+
+/*
+ *function RelatRot
+ * parm  end_pos @ 表示机械臂当前末端的位置和姿态（四元素）
+ *       rot_dst @ 表示机械臂沿着末端坐标系x，y，z轴旋转的角度
+ *
+ * return pose    @ 表示机械臂末端沿着相对坐标系旋转的最后坐标
+ */
+pose RelatRot(pose end_pos, roz rot_dst);
+
+/*
  * funciton EndRotXYZ
  * parm  end_ori @ 表示机械臂当前末端的姿态（四元素）
  *       rel_ori @ 表示机械臂沿着末端坐标系x，y，z轴旋转的角度
@@ -109,17 +127,32 @@ ori rozMove(ori endOri, roz rel_ori);
 
 /*
  *function ConunLine
- *计算机械臂末端直线规划
+ *检测直线是否成立 计算机械臂末端直线规划
  *parm  s_point @      起始世界坐标
  *      e_point @      终点世界坐标
  *      arm_ori @      末端姿态
- *      precis  @      步长（默认 0.01*precis）
+ *      precis  @      步长（默认 0.01*precis）一般为1
  *      angle   @      点之间角度检测误差（弧度表示）
  *    arm_state @    机械臂末端当前的姿态
  *
  *      return bool    是否有满足条件的解
  */
 bool CountLine(pos s_point, pos e_point, ori arm_ori, double precis, double angle, double arm_state[6]);
+
+/*
+ *function ConunLine
+ * 计算机械臂末端直线规划
+ *parm  s_point @      起始世界坐标
+ *      e_point @      终点世界坐标
+ *      arm_ori @      末端姿态,
+ *      precis  @      步长（默认 0.01*precis）
+ *      angle   @      点之间角度检测误差（弧度表示）
+ *    arm_state @    机械臂末端当前的姿态
+ *
+ *      return -1    没有解
+ *             >2    表示解arm_slov_array的大小
+ */
+int CountLineToBuffer(pos s_point, pos e_point, ori arm_ori, double precis, double angle, double arm_state[6], double * slov_array);
 
 /*
  * function printfpose

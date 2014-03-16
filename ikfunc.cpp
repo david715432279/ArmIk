@@ -8,7 +8,7 @@ bool PointAngTest(double a[ARM_DOF], double b[ARM_DOF], double angle){
         temp = fabs(a[i]-b[i]);
         if(temp > angle)
             return false;
-     //   printf("the %d angle bet is %.6f\n",i,temp);z
+        //printf("the %d angle bet is %.6f\n",i,temp);
     }
     return true;
 }
@@ -65,6 +65,68 @@ bool CountLine(pos s_point, pos e_point, ori arm_ori, double precis, double angl
         return false;
     }
      return true;
+}
+
+int CountLineToBuffer(pos s_point, pos e_point, ori arm_ori, double precis, double angle, double arm_state[6], double *slov_array){
+    double step = 0.01*precis;
+    int step_count = 0;
+    pos dst,temp_pose;
+    double joint_sol_temp[ARM_DOF];
+    double sol_old[ARM_DOF];
+    bool bSuccess;
+
+    for(int i=0;i<ARM_DOF;i++){
+        joint_sol_temp[i] = arm_state[i];
+        sol_old[i] = arm_state[i];
+    }
+
+
+   // step 1 count the dis between the point
+    dst = PosDis(s_point,e_point);
+        PrintfPos(dst);
+    // step 2 count the length
+    double length = NORM(dst.x, dst.y, dst.z, 0);
+        printf("the length is %f\n",length);
+    step_count = (int)(length/step);
+    printf("the count is %d\n",step_count);
+    // step 3 申请空间存放解
+    slov_array = (double*)malloc(sizeof(double)*ARM_DOF*step_count);
+
+    for(int i=0;i<step_count-1;i++){
+        temp_pose.x = s_point.x + i*dst.x/step_count;
+        temp_pose.y = s_point.y + i*dst.y/step_count;
+        temp_pose.z = s_point.z + i*dst.z/step_count;
+
+        bSuccess = ArmIk(temp_pose, arm_ori, sol_old, joint_sol_temp, 0);
+        if(bSuccess  == -1){
+            printf("ik error at %d",i);
+            PrintfPos(temp_pose);
+            return -1;
+        }
+        if(i>0 && !PointAngTest(sol_old, joint_sol_temp, angle)){
+            printf("angle test error at %d",i);
+            PrintfPos(temp_pose);
+            return -1;
+        }
+        for(int j=0;j<ARM_DOF;j++){
+            sol_old[j] = joint_sol_temp[j];
+            *(slov_array+ARM_DOF*i+j) = joint_sol_temp[j];
+        }
+    }
+
+    bSuccess = ArmIk(e_point, arm_ori, sol_old, joint_sol_temp, 0);
+    if(bSuccess  == -1){
+        printf("the end point is error!\n");
+        PrintfPos(temp_pose);
+        return -1;
+    }
+    //填充最后一个点的解算数据
+    for(int j=0;j<ARM_DOF;j++){
+      //  slov_array[step_count-1][j] = joint_sol_temp[j];
+         *(slov_array+ARM_DOF*(step_count-1)+j) = joint_sol_temp[j];
+    }
+
+     return step_count;
 }
 
 
@@ -244,7 +306,19 @@ int ArmFk(pos* arm_pos, ori* arm_ori, double joint_solve[6]){
      return 0;
 }
 
+pose RelatMove(pose end_pos, pos mov_dst){
+    pos worldmove = EndMoveXYZ(end_pos.orientation,mov_dst);
+    end_pos.position.x += worldmove.x;
+    end_pos.position.y += worldmove.y;
+    end_pos.position.z += worldmove.z;
+    return end_pos;
+}
 
+pose RelatRot(pose end_pos, roz rot_dst){
+    ori worldrot = EndRotXYZ(end_pos.orientation, rot_dst);
+    end_pos.orientation = worldrot;
+    return end_pos;
+}
 
 //move the end point alone the axis x,y,z related to the world
 //mov_dst表示相对末端点x,y,z坐标轴移动的距离
@@ -517,7 +591,7 @@ int ArmIk(pos arm_pos, ori arm_ori,const double arm_state[ARM_DOF], double joint
                 //printf("the err num is %d\n",j);
                 break;
             }
-            temp_route += fabs(solvalues[j]-arm_state[j]);    //count the angle arm move
+                temp_route += fabs(solvalues[j]-arm_state[j]);    //count the angle arm move
             if(j == solvalues.size()-1){
                 if(arm_route == 0.0f || (temp_route - arm_route) < 0.0f){
                      // printf("the %d best sol id the temp_route is %f arm_route is %f",i,temp_route,arm_route);

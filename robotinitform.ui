@@ -2132,6 +2132,24 @@
     </layout>
    </widget>
   </widget>
+  <widget class="QPushButton" name="LinePathShow">
+   <property name="geometry">
+    <rect>
+     <x>290</x>
+     <y>670</y>
+     <width>151</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>15</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>直线轨迹演示</string>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>

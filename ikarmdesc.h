@@ -2,6 +2,7 @@
 #define IKARMDESC_H
 
 #define ARM_DOF 6
+#define POSE_Z_MAX 1.029987
 //limit the joint for the arm
 //const float arm_limit[12] = {-2.96,2.96,-1.91,1.91,-1.91,1.91,-2.96,2.96,-1.91,1.91,-2.96,2.96};
 const float arm_limit[12] = {-3.0,3.0,-2.96,2.96,-2.96,2.96,-2.96,2.96,-2.96,2.96,-2.96,2.96};

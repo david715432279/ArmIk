@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
     Widget w;
     w.show();
-/*double arm_slov_joint[6];
+double arm_slov_joint[6];
 double arm_joint_state[6] = {0,0,0,0,0,0};
    // test();
     pose test_pos;
@@ -49,16 +49,16 @@ double arm_joint_state[6] = {0,0,0,0,0,0};
    // printf("the resulatc is w %f,x %f, y %f, z %f\n",resultc.w,resultc.x, resultc.y, resultc.z);
    // printf("the resulatd is w %f,x %f, y %f, z %f\n",resultd.w,resultd.x, resultd.y, resultd.z);
 
-   // CountLine(test_pos.position, end_pos, test_pos.orientation, 1.0, 1.0, arm_joint_state);
+    CountLine(test_pos.position, end_pos, test_pos.orientation, 10, 1.0, arm_joint_state);
 
   //  arm_ik(test_pos.position, test_pos.orientation, arm_joint_state, arm_slov_joint, NULL);
-    ArmIkCheckFk(&test_pos.position,&test_pos.orientation,arm_joint_state);
+  //  ArmIkCheckFk(&test_pos.position,&test_pos.orientation,arm_joint_state);
   // ArmFk(&test_pos.position,&test_pos.orientation,arm_joint_state);
    // PrintfPose(test_pos);
    // ArmIk(test_pos.position, test_pos.orientation, arm_joint_state, arm_slov_joint, NULL);
   //  PrintfJoint(arm_slov_joint);
 
-   // printfpose(test_pos);*/
+   // printfpose(test_pos);
 
     return a.exec();
 }

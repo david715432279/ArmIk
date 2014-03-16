@@ -7,6 +7,7 @@
 #define JOINT_PRECISION 4
 #define SET_ALL_JOINT 0x10
 
+
 class ArmState
 {
 public:
