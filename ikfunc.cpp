@@ -4,6 +4,7 @@
 bool PointAngTest(double a[ARM_DOF], double b[ARM_DOF], double angle){
     double temp;
 
+    angle*=0.5;
     for(int i=0; i<ARM_DOF; i++){
         temp = fabs(a[i]-b[i]);
         if(temp > angle)
@@ -13,7 +14,7 @@ bool PointAngTest(double a[ARM_DOF], double b[ARM_DOF], double angle){
     return true;
 }
 
-bool CountLine(pos s_point, pos e_point, ori arm_ori, double precis, double angle, double arm_state[6]){
+int CountLine(pos s_point, pos e_point, ori arm_ori, double precis, double angle, const double arm_state[6]){
     double step = 0.01*precis;
     int step_count = 0;
     pos dst,temp_pose;
@@ -46,12 +47,12 @@ bool CountLine(pos s_point, pos e_point, ori arm_ori, double precis, double angl
         if(bSuccess  == -1){
             printf("ik error at %d",i);
             PrintfPos(temp_pose);
-            return false;
+            return -1;
         }
         if(i>0 && !PointAngTest(sol_old, joint_sol_temp, angle)){
             printf("angle test error at %d",i);
             PrintfPos(temp_pose);
-            return false;
+            return -1;
         }
         for(int j=0;j<ARM_DOF;j++){
             sol_old[j] = joint_sol_temp[j];
@@ -62,12 +63,12 @@ bool CountLine(pos s_point, pos e_point, ori arm_ori, double precis, double angl
     if(bSuccess  == -1){
         printf("the end point is error!\n");
         PrintfPos(temp_pose);
-        return false;
+        return -1;
     }
-     return true;
+     return step_count;
 }
 
-int CountLineToBuffer(pos s_point, pos e_point, ori arm_ori, double precis, double angle, double arm_state[6], double *slov_array){
+int CountLineToBuffer(pos s_point, pos e_point, ori arm_ori, double precis, double angle, const double arm_state[6], double *slov_array){
     double step = 0.01*precis;
     int step_count = 0;
     pos dst,temp_pose;
@@ -89,8 +90,6 @@ int CountLineToBuffer(pos s_point, pos e_point, ori arm_ori, double precis, doub
         printf("the length is %f\n",length);
     step_count = (int)(length/step);
     printf("the count is %d\n",step_count);
-    // step 3 申请空间存放解
-    slov_array = (double*)malloc(sizeof(double)*ARM_DOF*step_count);
 
     for(int i=0;i<step_count-1;i++){
         temp_pose.x = s_point.x + i*dst.x/step_count;

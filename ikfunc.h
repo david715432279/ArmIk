@@ -127,7 +127,7 @@ ori rozMove(ori endOri, roz rel_ori);
 
 /*
  *function ConunLine
- *检测直线是否成立 计算机械臂末端直线规划
+ *检测直线是否成立 计算机械臂末端直线规划的规模点数
  *parm  s_point @      起始世界坐标
  *      e_point @      终点世界坐标
  *      arm_ori @      末端姿态
@@ -135,9 +135,11 @@ ori rozMove(ori endOri, roz rel_ori);
  *      angle   @      点之间角度检测误差（弧度表示）
  *    arm_state @    机械臂末端当前的姿态
  *
- *      return bool    是否有满足条件的解
+ *      return     是否有满足条件的解
+ *             -1     无解
+ *             》2    解中有多少个点
  */
-bool CountLine(pos s_point, pos e_point, ori arm_ori, double precis, double angle, double arm_state[6]);
+int CountLine(pos s_point, pos e_point, ori arm_ori, double precis, double angle, const double arm_state[6]);
 
 /*
  *function ConunLine
@@ -152,7 +154,7 @@ bool CountLine(pos s_point, pos e_point, ori arm_ori, double precis, double angl
  *      return -1    没有解
  *             >2    表示解arm_slov_array的大小
  */
-int CountLineToBuffer(pos s_point, pos e_point, ori arm_ori, double precis, double angle, double arm_state[6], double * slov_array);
+int CountLineToBuffer(pos s_point, pos e_point, ori arm_ori, double precis, double angle, const double arm_state[6], double * slov_array);
 
 /*
  * function printfpose

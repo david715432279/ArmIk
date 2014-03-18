@@ -4,8 +4,8 @@
 #include  "QDebug"
 #include  "math.h"
 
-#define ANGLE_PRECISION 1*M_PI/180.0
-#define POS_MOVESTEP_PERCISION 0.01
+#define ANGLE_PRECISION 1*M_PI/180.8
+#define POS_MOVESTEP_PERCISION 0.005
 
 RobotInitForm::RobotInitForm(QWidget *parent) :
     QWidget(parent),
@@ -41,6 +41,7 @@ RobotInitForm::RobotInitForm(QWidget *parent) :
     connect(ui->ZOriDButton,SIGNAL(pressed()),this, SLOT(PressButton()));
     connect(ui->ZOriUButton,SIGNAL(pressed()),this, SLOT(PressButton()));
     connect(ui->TurnZeroButton,SIGNAL(pressed()),this,SLOT(ResetRobot()));
+    connect(ui->LinePathShow,SIGNAL(clicked()),this,SLOT(LinePathPlan()));
     this->hide();
 
 }
@@ -60,8 +61,6 @@ void RobotInitForm::CheckRobotState(){
     //显示机械手臂关节状态
    // printf("asdfasdf\n");
     this->UpdateArmState();
-
-
 }
 
 void RobotInitForm::UpdateArmState(){
@@ -220,7 +219,7 @@ void RobotInitForm::PressButton(){
         if(!PButtonTimer->isActive()){
             PButtonTimer->start();
         }
-    }else if(ui->Ax5DButton->isDown() || ui->ZOriDButton->isDown()){
+    }else if(ui->Ax5DButton->isDown()){
         arm_temp_joint[4] -= ANGLE_PRECISION;
         //检查是否超过控制范围
         if(arm_temp_joint[4] < arm_limit[8] || arm_temp_joint[4] > arm_limit[9]){
@@ -236,7 +235,7 @@ void RobotInitForm::PressButton(){
         if(!PButtonTimer->isActive()){
             PButtonTimer->start();
         }
-    }else if(ui->Ax5UButton->isDown() || ui->ZOriUButton->isDown()){
+    }else if(ui->Ax5UButton->isDown()){
         arm_temp_joint[4] += ANGLE_PRECISION;
         //检查是否超过控制范围
         if(arm_temp_joint[4] < arm_limit[8] || arm_temp_joint[4] > arm_limit[9]){
@@ -499,14 +498,14 @@ void RobotInitForm::PressButton(){
             }
         }else{
             //绝对坐标移动 Y+
-            arm_temp_pose.position.y += POS_MOVESTEP_PERCISION;
+            arm_temp_pose.position.y -= POS_MOVESTEP_PERCISION;
 
             if(!ArmIk(arm_temp_pose.position,arm_temp_pose.orientation, ArmState::arm_current_state,arm_solve_temp,NULL)){
                 //设置如果解算出的结果需要轴进行翻转则停止前进，默认无法解算，为了保持相对运动时轨迹的连续
                 if(!PointAngTest(arm_solve_temp,ArmState::arm_current_state, 1)){
                        printf("the PointAngTest is error!\n");
                        //保持原来姿态
-                       arm_temp_pose.position.y -= POS_MOVESTEP_PERCISION;
+                       arm_temp_pose.position.y += POS_MOVESTEP_PERCISION;
                        return;
                 }
 
@@ -519,7 +518,7 @@ void RobotInitForm::PressButton(){
                 }
             }else{
                 //保持原来姿态
-                arm_temp_pose.position.y -= POS_MOVESTEP_PERCISION;
+                arm_temp_pose.position.y += POS_MOVESTEP_PERCISION;
             }
         }
 
@@ -558,14 +557,14 @@ void RobotInitForm::PressButton(){
             }
         }else{
             //绝对坐标移动 Y-
-            arm_temp_pose.position.y -= POS_MOVESTEP_PERCISION;
+            arm_temp_pose.position.y += POS_MOVESTEP_PERCISION;
 
             if(!ArmIk(arm_temp_pose.position,arm_temp_pose.orientation, ArmState::arm_current_state,arm_solve_temp,NULL)){
                 //设置如果解算出的结果需要轴进行翻转则停止前进，默认无法解算，为了保持相对运动时轨迹的连续
                 if(!PointAngTest(arm_solve_temp,ArmState::arm_current_state, 1)){
                        printf("the PointAngTest is error!\n");
                        //保持原来姿态
-                       arm_temp_pose.position.y += POS_MOVESTEP_PERCISION;
+                       arm_temp_pose.position.y -= POS_MOVESTEP_PERCISION;
                        return;
                 }
 
@@ -578,7 +577,7 @@ void RobotInitForm::PressButton(){
                 }
             }else{
                 //保持原来姿态
-                arm_temp_pose.position.y += POS_MOVESTEP_PERCISION;
+                arm_temp_pose.position.y -= POS_MOVESTEP_PERCISION;
             }
         }
 
@@ -591,7 +590,7 @@ void RobotInitForm::PressButton(){
         if(ui->EndPosRadioButton->isChecked()){
             //相对坐标移动
             pose arm_old_pose = arm_temp_pose;              //旧的位置姿态
-            pose move_pos = {{0,POS_MOVESTEP_PERCISION,0},{0,0,0,0}}; //定义一个相对变量
+            pose move_pos = {{0,-POS_MOVESTEP_PERCISION,0},{0,0,0,0}}; //定义一个相对变量
 
             arm_temp_pose = RelatMove(arm_temp_pose,move_pos.position);
 
@@ -650,7 +649,7 @@ void RobotInitForm::PressButton(){
         if(ui->EndPosRadioButton->isChecked()){
             //相对坐标移动
             pose arm_old_pose = arm_temp_pose;              //旧的位置姿态
-            pose move_pos = {{0,-POS_MOVESTEP_PERCISION,0},{0,0,0,0}}; //定义一个相对变量
+            pose move_pos = {{0,POS_MOVESTEP_PERCISION,0},{0,0,0,0}}; //定义一个相对变量
 
             arm_temp_pose = RelatMove(arm_temp_pose,move_pos.position);
 
@@ -721,14 +720,14 @@ void RobotInitForm::PressButton(){
                        return;
                 }
 
-                arm_solve_temp[5] = arm_temp_joint[5];
-                for(int i=0x01; i < ARM_DOF-1; i++){ //关节转动与末端无关
-                    if(!arm_ob->SetArmJoState(arm_temp_pose,arm_solve_temp,i)){
+            //    arm_solve_temp[5] = arm_temp_joint[5];
+            //    for(int i=0x01; i < ARM_DOF; i++){ //关节转动与末端无关
+                    if(!arm_ob->SetArmJoState(arm_temp_pose,arm_solve_temp,SET_ALL_JOINT)){
                         //TODO: 错误处理
                     }
-                }
+             //   }
                 //更新arm_temp_pose
-                for(int i=0; i < ARM_DOF-1; i++){    //关节转动与末端无关
+                for(int i=0; i < ARM_DOF; i++){    //关节转动与末端无关
                     arm_temp_joint[i] = arm_solve_temp[i];
                 }
             }else{
@@ -755,15 +754,78 @@ void RobotInitForm::PressButton(){
                        arm_temp_pose = arm_old_pose;
                        return;
                 }
-                       arm_solve_temp[5] = arm_temp_joint[5];
-                for(int i=0x01; i < ARM_DOF-1; i++){ //关节转动与末端无关
-                    if(!arm_ob->SetArmJoState(arm_temp_pose,arm_solve_temp,i)){
-                        //TODO: 错误处理
-                    }
+            //           arm_solve_temp[5] = arm_temp_joint[5];
+                if(!arm_ob->SetArmJoState(arm_temp_pose,arm_solve_temp,SET_ALL_JOINT)){
+                    //TODO: 错误处理
                 }
 
                 //更新arm_temp_pose
-                for(int i=0; i < ARM_DOF-1; i++){    //关节转动与末端无关
+                for(int i=0; i < ARM_DOF; i++){    //关节转动与末端无关
+                    arm_temp_joint[i] = arm_solve_temp[i];
+                }
+            }else{
+                //保持原来姿态
+                arm_temp_pose = arm_old_pose;
+            }
+
+        if(!PButtonTimer->isActive()){
+            PButtonTimer->start();
+        }
+    }else if(ui->ZOriDButton->isDown()){//左转为绕Z轴顺时针转
+        double arm_solve_temp[ARM_DOF];
+        //step 1 测试按下的是相对坐标变换还是绝对坐标变换
+            //相对坐标移动
+            pose arm_old_pose = arm_temp_pose;              //旧的位置姿态
+            roz rot_pos = {0,0,ANGLE_PRECISION};
+            arm_temp_pose = RelatRot(arm_temp_pose,rot_pos);
+
+            if(!ArmIk(arm_temp_pose.position,arm_temp_pose.orientation, ArmState::arm_current_state,arm_solve_temp,NULL)){
+                //设置如果解算出的结果需要轴进行翻转则停止前进，默认无法解算，为了保持相对运动时轨迹的连续
+                if(!PointAngTest(arm_solve_temp,ArmState::arm_current_state, 1)){
+                       printf("the PointAngTest is error!\n");
+                       //保持原来姿态
+                       arm_temp_pose = arm_old_pose;
+                       return;
+                }
+
+                if(!arm_ob->SetArmJoState(arm_temp_pose,arm_solve_temp,SET_ALL_JOINT)){
+                    //TODO: 错误处理
+                }
+                //更新arm_temp_pose
+                for(int i=0; i < ARM_DOF; i++){    //关节转动与末端无关
+                    arm_temp_joint[i] = arm_solve_temp[i];
+                }
+            }else{
+                //保持原来姿态
+                arm_temp_pose = arm_old_pose;
+            }
+
+        if(!PButtonTimer->isActive()){
+            PButtonTimer->start();
+        }
+    }else if(ui->ZOriUButton->isDown()){//右转为绕Z轴逆时针转
+        double arm_solve_temp[ARM_DOF];
+        //step 1 测试按下的是相对坐标变换还是绝对坐标变换
+            //相对坐标移动
+            pose arm_old_pose = arm_temp_pose;              //旧的位置姿态
+            roz rot_pos = {0,0,-ANGLE_PRECISION};
+            arm_temp_pose = RelatRot(arm_temp_pose,rot_pos);
+
+            if(!ArmIk(arm_temp_pose.position,arm_temp_pose.orientation, ArmState::arm_current_state,arm_solve_temp,NULL)){
+                //设置如果解算出的结果需要轴进行翻转则停止前进，默认无法解算，为了保持相对运动时轨迹的连续
+                if(!PointAngTest(arm_solve_temp,ArmState::arm_current_state, 1)){
+                       printf("the PointAngTest is error!\n");
+                       //保持原来姿态
+                       arm_temp_pose = arm_old_pose;
+                       return;
+                }
+
+                if(!arm_ob->SetArmJoState(arm_temp_pose,arm_solve_temp,SET_ALL_JOINT)){
+                    //TODO: 错误处理
+                }
+
+                //更新arm_temp_pose
+                for(int i=0; i < ARM_DOF; i++){    //关节转动与末端无关
                     arm_temp_joint[i] = arm_solve_temp[i];
                 }
             }else{
@@ -805,6 +867,52 @@ void RobotInitForm::PressButtonTimeout(){
         }
     }
 }*/
+
+void RobotInitForm::LinePathPlan(){
+    SendCmdTimer = new QTimer(this);
+    SendCmdTimer->setInterval(SEND_POINT_STEP);
+
+    pose test_pos;
+    pose  end_pos;
+
+    test_pos.position.x = -0.736397445202;
+    test_pos.position.y = -0.0129018928856;
+    test_pos.position.z = -0.0753068029881;
+    test_pos.orientation.w = 0.999771595001;
+    test_pos.orientation.x = -0.000220606132643;
+    test_pos.orientation.y = -0.0169492401183;
+    test_pos.orientation.z = 0.0130159296095;
+
+    end_pos.position.x = -0.430622845888;
+    end_pos.position.y = -0.00417962437496;
+    end_pos.position.z = 0.790055513382;
+
+    slov_size = CountLine(test_pos.position, end_pos.position, test_pos.orientation, 10, 1.0, arm_init_joint_state);
+    if(slov_size == -1){
+         printf("slove error!\n");
+        return;
+    }
+    // step 3 申请空间存放解
+    slov_line_ary = (double*)malloc(sizeof(double)*ARM_DOF*slov_size);
+    CountLineToBuffer(test_pos.position, end_pos.position, test_pos.orientation, 10, 1.0, arm_init_joint_state, slov_line_ary);
+
+    connect(SendCmdTimer,SIGNAL(timeout()),this,SLOT(SendPathCmd()));
+    slov_count = 0;
+  //  SendCmdTimer->start();
+    SendCmdTimer->start();
+}
+
+void RobotInitForm::SendPathCmd(){
+    if(!arm_ob->SetArmJoState(arm_temp_pose,slov_line_ary+slov_count*ARM_DOF)){
+        //TODO: 错误处理
+        SendCmdTimer->stop();
+        return;
+    }
+    slov_count++;
+    if(slov_count==slov_size)
+        SendCmdTimer->stop();
+
+}
 
 RobotInitForm::~RobotInitForm()
 {

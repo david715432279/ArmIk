@@ -10,7 +10,7 @@ ArmState::ArmState()
 bool ArmState::ArmInit(){
     //step 0 初始化接口设备
      //open
-    arm_caninit();
+       arm_caninit();
     //step 1 检查机器人的状态
 
     //step 1.1读取机器人当前状态后可以设置当前关节角度
@@ -20,14 +20,14 @@ bool ArmState::ArmInit(){
         //ArmState::arm_current_state
     }
 
-   // ArmIkCheckFk(&arm_pose.position, &arm_pose.orientation,arm_current_state);
-    arm_pose.position.x = -0.124513;
+    ArmIkCheckFk(&arm_pose.position, &arm_pose.orientation,arm_current_state);
+  /*  arm_pose.position.x = -0.124513;
     arm_pose.position.y = -0.001358;
     arm_pose.position.z = 1.029987;
     arm_pose.orientation.w = 0.999969;
     arm_pose.orientation.x = -0.003500;
     arm_pose.orientation.y = 0.000039;
-    arm_pose.orientation.z = -0.007;
+    arm_pose.orientation.z = -0.007;*/
     PrintfPose(arm_pose);
     if(!ArmIk(arm_pose.position, arm_pose.orientation, arm_current_state, arm_solve_state, NULL)){
         SetArmJoState(arm_current_state);
@@ -82,7 +82,7 @@ bool ArmState::SetArmJoState(pose arm_temp_pose, double arm_state[ARM_DOF], int 
     //TODO 错误处理
   if(joint_index == SET_ALL_JOINT){
         for(int i=0x01; i <= ARM_DOF; i++){
-             arm_setpos_joint_noth(i,arm_state[i-1],JOINT_RADIAN);
+              arm_setpos_joint_noth(i,arm_state[i-1],JOINT_RADIAN);
         }
     } else{
          arm_setpos_joint_noth(joint_index,arm_state[joint_index-1],JOINT_RADIAN);
@@ -102,7 +102,6 @@ bool ArmState::SetArmJoState(pose arm_temp_pose, double arm_state[ARM_DOF], int 
 
 bool ArmState::SetArmJoState(double arm_state[ARM_DOF]){
    //step1 设置关节角度
-     // arm_setpos_joint_noth(0x06,0,JOINT_RADIAN);
       for(int i=0x01; i <= ARM_DOF; i++){
          arm_setpos_joint_noth(i,arm_state[i-1],JOINT_RADIAN);
     }
